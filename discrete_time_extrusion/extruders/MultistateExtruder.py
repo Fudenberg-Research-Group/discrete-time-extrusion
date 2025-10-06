@@ -6,6 +6,7 @@ class MultistateExtruder(BaseExtruder.BaseExtruder):
     def __init__(self,
                  number,
                  barrier_engine,
+                 chromosome_bounds,
                  birth_prob,
                  death_prob,
                  stalled_death_prob,
@@ -15,6 +16,7 @@ class MultistateExtruder(BaseExtruder.BaseExtruder):
     
         super().__init__(number,
                          barrier_engine,
+                         chromosome_bounds,
                          birth_prob,
                          death_prob,
                          stalled_death_prob,
@@ -35,7 +37,7 @@ class MultistateExtruder(BaseExtruder.BaseExtruder):
             buffer = 1 if state_id == min(self.state_dict.values()) else 2
             
             state_array = self.xp.zeros(buffer, dtype=self.xp.int32)
-            transition_array = self.xp.zeros((buffer, self.number), dtype=self.xp.float32)
+            transition_array = self.xp.zeros((buffer, self.number), dtype=self.xp.float64)
             
             for ids, transition_prob in self.transition_dict.items():
                 if state_id == int(ids[0]):
@@ -89,6 +91,6 @@ class MultistateExtruder(BaseExtruder.BaseExtruder):
         self.unload(ids_death)
 
 
-    def step(self, mode, **kwargs):
+    def extrusion_step(self, mode, **kwargs):
     
-        super().step(mode, active_state_id=self.state_dict['RN'], **kwargs)
+        super().extrusion_step(mode, active_state_id=self.state_dict['RN'], **kwargs)

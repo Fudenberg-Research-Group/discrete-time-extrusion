@@ -41,77 +41,85 @@ except ImportError:
                       'symmetric' : symmetric_step,
                       'asymmetric' : asymmetric_step}
 
-	
-def SteppingEngine(sim, mode, unbound_state_id, active_state_id, threads_per_block=256, **kwargs):
 
-	rngs_diffusion = sim.xp.random.random((sim.number, 4)).astype(sim.xp.float32)
+def DiffusionEngine(sim, unbound_state_id, threads_per_block=256, **kwargs):
+
+	rngs = sim.xp.random.random((sim.number, 3)).astype(sim.xp.float64)
+	args = tuple([unbound_state_id,
+				  rngs,
+				  sim.number,
+				  0, sim.lattice_size,
+				  sim.states,
+				  sim.occupied,
+				  sim.stalled,
+				  sim.diffusion_prob,
+				  sim.positions])
+				  
+	if sim.xp.__name__ == 'cupy':
+		num_blocks = (sim.number+threads_per_block-1) // threads_per_block
 		
-	args_diffusion = tuple([unbound_state_id,
-			                rngs_diffusion,
-			                sim.number,
-			                0, sim.lattice_size,
-			                sim.states,
-			                sim.occupied,
-			                sim.stalled,
-			                sim.diffusion_prob,
-			                sim.positions])
+		warnings.warn("Running lattice diffusion on the GPU")
+		cuda_engines['diffusion']((num_blocks,), (threads_per_block,), args)
+		
+	elif sim.xp.__name__ == 'numpy':
+		if use_numba:
+			warnings.warn("Running lattice diffusion on the CPU using Numba")
+			numba_engines['diffusion'](*args)
+			
+		else:
+			warnings.warn("Running lattice diffusion on the CPU using pure Python backend")
+			python_engines['diffusion'](*args)
+
+	sim.update_occupancies()
+			                
+
+def SteppingEngine(sim, mode, active_state_id, threads_per_block=256, **kwargs):
 			      
 	if mode == "symmetric":
-		rngs = sim.xp.random.random((sim.number, 4)).astype(sim.xp.float32)
-		
+		rngs = sim.xp.random.random((sim.number, 4)).astype(sim.xp.float64)
 		args = tuple([active_state_id,
-			      rngs,
-			      sim.number,
-			      0, sim.lattice_size,
-			      sim.states,
-			      sim.occupied,
-			      sim.barrier_engine.stall_left,
-			      sim.barrier_engine.stall_right,
-			      sim.pause_prob,
-			      sim.positions,
-			      sim.stalled])
+			          rngs,
+			          sim.number,
+			          0, sim.lattice_size,
+			          sim.states,
+			          sim.occupied,
+			          sim.barrier_engine.stall_left,
+			          sim.barrier_engine.stall_right,
+			          sim.pause_prob,
+			          sim.positions,
+			          sim.stalled])
 
 	elif mode == "asymmetric":
-		rngs = sim.xp.random.random((sim.number, 2)).astype(sim.xp.float32)
-		
+		rngs = sim.xp.random.random((sim.number, 2)).astype(sim.xp.float64)
 		args = tuple([active_state_id,
-			      rngs,
-			      sim.number,
-			      0, sim.lattice_size,
-			      sim.states,
-			      sim.occupied,
-			      sim.directions,
-			      sim.barrier_engine.stall_left,
-			      sim.barrier_engine.stall_right,
-			      sim.pause_prob,
-			      sim.positions,
-			      sim.stalled])
+			          rngs,
+			          sim.number,
+			          0, sim.lattice_size,
+			          sim.states,
+			          sim.occupied,
+			          sim.directions,
+			          sim.barrier_engine.stall_left,
+			          sim.barrier_engine.stall_right,
+			          sim.pause_prob,
+			          sim.positions,
+			          sim.stalled])
 
 	else:
 		raise RuntimeError("Unsupported mode '%s'" % mode)
 		
 	if sim.xp.__name__ == 'cupy':
 		num_blocks = (sim.number+threads_per_block-1) // threads_per_block
+		
 		warnings.warn("Running lattice extrusion on the GPU")
-		
 		cuda_engines[mode]((num_blocks,), (threads_per_block,), args)
-		sim.update_occupancies()
-		
-		cuda_engines['diffusion']((num_blocks,), (threads_per_block,), args_diffusion)
-
+				
 	elif sim.xp.__name__ == 'numpy':
 		if use_numba:
 			warnings.warn("Running lattice extrusion on the CPU using Numba")
-			
 			numba_engines[mode](*args)
-			sim.update_occupancies()
-
-			numba_engines['diffusion'](*args_diffusion)
 
 		else:
 			warnings.warn("Running lattice extrusion on the CPU using pure Python backend")
-			
 			python_engines[mode](*args)
-			sim.update_occupancies()
-
-			python_engines['diffusion'](*args_diffusion)
+			
+	sim.update_occupancies()

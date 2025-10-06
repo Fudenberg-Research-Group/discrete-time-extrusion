@@ -43,16 +43,16 @@ def _asymmetric_step_gpu():
 	extern "C"
 	__global__ void _asymmetric_step_gpu(
 			const int active_state_id,
-			const float* rngs,
+			const double* rngs,
 			const unsigned int N,
 			const unsigned int N_min,
 			const unsigned int N_max,
 			const int* states,
 			const bool* occupied,
 			const unsigned int* directions,
-			const float* stall_left,
-			const float* stall_right,
-			const float* pause_prob,
+			const double* stall_left,
+			const double* stall_right,
+			const double* pause_prob,
 			int* positions,
 			unsigned int* stalled) {
 
@@ -67,7 +67,7 @@ def _asymmetric_step_gpu():
 		uint2* stall = (uint2*) stalled;
 		int2* position = (int2*) positions;
 		
-		float2* rng = (float2*) rngs;
+		double2* rng = (double2*) rngs;
 
 		unsigned int leg_id = directions[i];
 		unsigned int cur = (unsigned int) (leg_id==0 ? position[i].x : position[i].y);

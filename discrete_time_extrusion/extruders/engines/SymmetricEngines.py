@@ -47,15 +47,15 @@ def _symmetric_step_gpu():
 	extern "C"
 	__global__ void _symmetric_step_gpu(
 			const int active_state_id,
-			const float* rngs,
+			const double* rngs,
 			const unsigned int N,
 			const unsigned int N_min,
 			const unsigned int N_max,
 			const int* states,
 			const bool* occupied,
-			const float* stall_left,
-			const float* stall_right,
-			const float* pause_prob,
+			const double* stall_left,
+			const double* stall_right,
+			const double* pause_prob,
 			int* positions,
 			unsigned int* stalled) {
 
@@ -70,13 +70,13 @@ def _symmetric_step_gpu():
 		uint2* stall = (uint2*) stalled;
 		int2* position = (int2*) positions;
 		
-		float4* rng = (float4*) rngs;
+		double4* rng = (double4*) rngs;
 
 		unsigned int cur1 = (unsigned int) position[i].x;
 		unsigned int cur2 = (unsigned int) position[i].y;
 
-		float stall1 = stall_left[cur1];
-		float stall2 = stall_right[cur2];
+		double stall1 = stall_left[cur1];
+		double stall2 = stall_right[cur2];
 								
 		if (rng[i].w < stall1)
 			stall[i].x = 1;
@@ -86,7 +86,7 @@ def _symmetric_step_gpu():
 						
 		if (stall[i].x == 0) {
 			if (!occupied[cur1-1]) {
-				float pause1 = pause_prob[cur1];
+				double pause1 = pause_prob[cur1];
 				
 				if (rng[i].y > pause1)
 					position[i].x = (int) cur1-1;
@@ -95,7 +95,7 @@ def _symmetric_step_gpu():
 					
 		if (stall[i].y == 0) {
 			if (!occupied[cur2+1]) {
-				float pause2 = pause_prob[cur2];
+				double pause2 = pause_prob[cur2];
 				
 				if (rng[i].z > pause2)
 					position[i].y = (int) cur2+1;

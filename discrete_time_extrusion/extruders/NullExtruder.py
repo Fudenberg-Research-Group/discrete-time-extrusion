@@ -3,6 +3,7 @@ class NullExtruder():
     def __init__(self,
                  number,
                  barrier_engine,
+                 chromosome_boundaries,
                  *args, **kwargs):
             
         self.number = number
@@ -20,6 +21,8 @@ class NullExtruder():
         
         self.stalled = self.xp.zeros((self.number, 2), dtype=self.xp.uint32)
         self.positions = self.xp.zeros((self.number, 2), dtype=self.xp.int32) - 1
+        
+        self.chromosome_bounds = self.xp.asarray(chromosome_bounds, dtype=self.xp.int32)
 
         self.update_occupancies()
         
@@ -54,7 +57,7 @@ class NullExtruder():
     def update_occupancies(self):
         
         self.occupied.fill(False)
-        self.occupied[0] = self.occupied[-1] = True
+        self.occupied[self.chromosome_bounds] = True
         
         self.resolve_overlaps()
         

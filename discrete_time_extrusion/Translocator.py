@@ -10,6 +10,7 @@ class Translocator():
                  site_types,
                  ctcf_left_positions,
                  ctcf_right_positions,
+                 chromosome_bounds=[0,-1],
                  device='CPU',
                  **kwargs):
 
@@ -41,11 +42,13 @@ class Translocator():
         lef_arrays = arrays.make_LEF_arrays(xp, type_list, site_types, **kwargs)
         lef_transition_dict = arrays.make_LEF_transition_dict(xp, type_list, site_types, **kwargs)
 
-        ctcf_arrays = arrays.make_CTCF_arrays(xp, type_list, site_types, ctcf_left_positions, ctcf_right_positions, **kwargs)
         ctcf_dynamic_arrays = arrays.make_CTCF_dynamic_arrays(xp, type_list, site_types, **kwargs)
-        
+        ctcf_arrays = arrays.make_CTCF_arrays(xp, type_list, site_types,
+                                              ctcf_left_positions, ctcf_right_positions, **kwargs)
+                                              
         self.barrier_engine = barrier_engine(*ctcf_arrays, *ctcf_dynamic_arrays)
-        self.extrusion_engine = extrusion_engine(number_of_LEFs, self.barrier_engine, *lef_arrays, **lef_transition_dict)
+        self.extrusion_engine = extrusion_engine(number_of_LEFs, self.barrier_engine, chromosome_bounds,
+												 *lef_arrays, **lef_transition_dict)
                 
         kwargs['steps'] = int(kwargs['steps'] / self.time_unit)
         kwargs['dummy_steps'] = int(kwargs['dummy_steps'] / self.time_unit)

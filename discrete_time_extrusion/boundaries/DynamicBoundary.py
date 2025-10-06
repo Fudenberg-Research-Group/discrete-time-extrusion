@@ -30,8 +30,8 @@ class DynamicBoundary(StaticBoundary.StaticBoundary):
                                           self.states_right*rng_right,
                                           -1)
 
-        self.stall_left = self.xp.equal(self.states_left, 1).astype(self.xp.float32)
-        self.stall_right = self.xp.equal(self.states_right, 1).astype(self.xp.float32)
+        self.stall_left = self.xp.equal(self.states_left, 1).astype(self.xp.float64)
+        self.stall_right = self.xp.equal(self.states_right, 1).astype(self.xp.float64)
                          
 
     def birth(self, unbound_state_id):

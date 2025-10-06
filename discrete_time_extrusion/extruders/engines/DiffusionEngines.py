@@ -14,15 +14,16 @@ def _diffusion_step_cpu(unbound_state_id,
 			for j in range(2):
 				cur = positions[i, j]
 
-				if not stalled[i, j]:
-					if rngs[i, 2*j] < diffuse_prob[cur]:
-						if rngs[i, 2*j+1] < 0.5:
-							if (not occupied[cur-1]) and ((j == 0) or (cur > positions[i, 0])):
-								positions[i, j] = cur - 1
-								
-						else:
-							if (not occupied[cur+1]) and ((j == 1) or (cur < positions[i, 1])):
-								positions[i, j] = cur + 1
+				if rngs[i, 2*j] < diffuse_prob[cur]:
+					stalled[i, j] = False
+				
+					if rngs[i, 2*j+1] < 0.5:
+						if (not occupied[cur-1]) and ((j == 0) or (cur > positions[i, 0])):
+							positions[i, j] = cur - 1
+							
+					else:
+						if (not occupied[cur+1]) and ((j == 1) or (cur < positions[i, 1])):
+							positions[i, j] = cur + 1
 
 
 def _diffusion_step_gpu():
@@ -32,14 +33,14 @@ def _diffusion_step_gpu():
 	extern "C"
 	__global__ void _diffusion_step_gpu(
 			const int unbound_state_id,
-			const float* rngs,
+			const double* rngs,
 			const unsigned int N,
 			const unsigned int N_min,
 			const unsigned int N_max,
 			const int* states,
 			const bool* occupied,
 			const unsigned int* stalled,
-			const float* diffuse_prob,
+			const double* diffuse_prob,
 			int* positions) {
 
 		unsigned int i = (unsigned int) (blockDim.x * blockIdx.x + threadIdx.x);
@@ -53,14 +54,16 @@ def _diffusion_step_gpu():
 		uint2* stall = (uint2*) stalled;
 		int2* position = (int2*) positions;
 		
-		float4* rng = (float4*) rngs;
+		double3* rng = (double3*) rngs;
 
 		unsigned int cur1 = (unsigned int) position[i].x;
 		unsigned int cur2 = (unsigned int) position[i].y;
 
-		if (stall[i].x == 0) {
-			if (rng[i].w < diffuse_prob[cur1]) {
-				if (rng[i].x < 0.5) {
+		if (rng[i].x < 0.5) {
+			if (rng[i].y < diffuse_prob[cur1]) {
+				stall[i].x = 0;
+			
+				if (rng[i].z < 0.5) {
 					if (!occupied[cur1-1])
 						position[i].x = (int) cur1-1;
 				}
@@ -71,8 +74,10 @@ def _diffusion_step_gpu():
 			}
 		}
 		
-		if (stall[i].y == 0) {
+		else {
 			if (rng[i].y < diffuse_prob[cur2]) {
+				stall[i].y = 0;
+
 				if (rng[i].z < 0.5) {
 					if (!occupied[cur2-1] && (cur2 > position[i].x))
 						position[i].y = (int) cur2-1;

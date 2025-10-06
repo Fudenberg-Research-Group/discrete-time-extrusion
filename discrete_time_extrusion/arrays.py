@@ -9,7 +9,7 @@ def make_site_array(xp,
     assert len(type_list) == len(value_dict), ('Number of values (%d) incompatible with number of site types (%d)'
                                             % (len(value_dict), len(type_list)))
     
-    prop_array = xp.zeros(len(site_types), dtype=xp.float32)
+    prop_array = xp.zeros(len(site_types), dtype=xp.float64)
     
     for i, name in enumerate(type_list):
         prop_array[site_types == i] = value_dict[name]
