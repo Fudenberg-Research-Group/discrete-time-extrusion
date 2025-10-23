@@ -22,7 +22,7 @@ class NullExtruder():
         self.stalled = self.xp.zeros((self.number, 2), dtype=self.xp.uint32)
         self.positions = self.xp.zeros((self.number, 2), dtype=self.xp.int32) - 1
         
-        self.chromosome_bounds = self.xp.asarray(chromosome_bounds, dtype=self.xp.int32)
+        self.chromosome_bounds = self.xp.asarray(chromosome_boundaries, dtype=self.xp.int32)
 
         self.update_occupancies()
         
