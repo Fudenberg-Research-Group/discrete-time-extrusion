@@ -36,10 +36,11 @@ class BaseExtruder(NullExtruder.NullExtruder):
         binding_sites = self.xp.random.choice(free_sites, size=len(unbound_ids), replace=False)
 
         rng = self.xp.less(self.xp.random.random(len(unbound_ids)), self.birth_prob[binding_sites])
+		
         load_ids = self.xp.flatnonzero(rng)
-                        
+        ids = unbound_ids[load_ids]
+
         if len(load_ids) > 0:
-            ids = unbound_ids[load_ids]
             binding_sites = binding_sites[load_ids]
         
             rng_dir = self.xp.less(self.xp.random.random(len(ids)), 0.5)
