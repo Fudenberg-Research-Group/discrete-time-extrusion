@@ -1,29 +1,47 @@
 def _diffusion_step_cpu(unbound_state_id,
                         rngs,
                         N,
-                        N_min,
-                        N_max,
                         states,
-                        occupied,
-                        stalled,
                         diffuse_prob,
-                        positions):
+                        forward_rates,
+                        backward_rates,
+                        positions,
+                        stalled,
+                        occupied):
 					
 	for i in range(N):
 		if (states[i] != unbound_state_id):
-			for j in range(2):
-				cur = positions[i, j]
+			leg_id = 0 if rngs[i, 0] < 0.5 else 1
+			old_pos = positions[i, leg_id]
+			
+			if (leg_id == 0):
+			    if (rngs[i, 1] < 0.5):
+			        rate = forward_rates[i, 0]
+			    else:
+			        rate = backward_rates[i, 0]
 
-				if rngs[i, 2*j] < diffuse_prob[cur]:
-					stalled[i, j] = False
+			else:
+			    if (rngs[i, 1] < 0.5):
+			        rate = backward_rates[i, 1]
+			    else:
+			        rate = forward_rates[i, 1]
+			        
+			if rngs[i, 2] < diffuse_prob[old_pos] * rate:
+				stalled[i, leg_id] = False
 				
-					if rngs[i, 2*j+1] < 0.5:
-						if (not occupied[cur-1]) and ((j == 0) or (cur > positions[i, 0])):
-							positions[i, j] = cur - 1
+				if rngs[i, 1] < 0.5:
+					if (not occupied[old_pos-1]) and ((leg_id == 0) or (old_pos > positions[i, 0])):
+						positions[i, leg_id] = old_pos - 1
 							
-					else:
-						if (not occupied[cur+1]) and ((j == 1) or (cur < positions[i, 1])):
-							positions[i, j] = cur + 1
+						occupied[old_pos-1] = 1
+						occupied[old_pos] = 0 if positions[i, 1-leg_id] != old_pos else 1
+
+				else:
+					if (not occupied[old_pos+1]) and ((leg_id == 1) or (old_pos < positions[i, 1])):
+						positions[i, leg_id] = old_pos + 1
+							
+						occupied[old_pos+1] = 1
+						occupied[old_pos] = 0 if positions[i, 1-leg_id] != old_pos else 1
 
 
 def _diffusion_step_gpu():
@@ -35,13 +53,13 @@ def _diffusion_step_gpu():
 			const int unbound_state_id,
 			const double* rngs,
 			const unsigned int N,
-			const unsigned int N_min,
-			const unsigned int N_max,
 			const int* states,
-			const bool* occupied,
-			const unsigned int* stalled,
 			const double* diffuse_prob,
-			int* positions) {
+			const double* forward_rates,
+			const double* backward_rates,
+			int* positions,
+			unsigned int* stalled,
+			unsigned int* occupied) {
 
 		unsigned int i = (unsigned int) (blockDim.x * blockIdx.x + threadIdx.x);
 
@@ -55,36 +73,63 @@ def _diffusion_step_gpu():
 		int2* position = (int2*) positions;
 		
 		double3* rng = (double3*) rngs;
-
-		unsigned int cur1 = (unsigned int) position[i].x;
-		unsigned int cur2 = (unsigned int) position[i].y;
-
+		
+		double2* forward_rate = (double2*) forward_rates;
+		double2* backward_rate = (double2*) backward_rates;
+		
+		unsigned int old_pos1 = (unsigned int) position[i].x;
+		unsigned int old_pos2 = (unsigned int) position[i].y;
+		
 		if (rng[i].x < 0.5) {
-			if (rng[i].y < diffuse_prob[cur1]) {
+			double rate = (rng[i].y < 0.5) ? forward_rate[i].x : backward_rate[i].x;
+
+			if (rng[i].z < diffuse_prob[old_pos1] * rate) {
 				stall[i].x = 0;
 			
-				if (rng[i].z < 0.5) {
-					if (!occupied[cur1-1])
-						position[i].x = (int) cur1-1;
+				if (rng[i].y < 0.5) {
+					if (atomicCAS(&occupied[old_pos1-1], 0, 1) == 0) {
+						if (position[i].y != old_pos1)
+							atomicExch(&occupied[old_pos1], 0);
+							
+						position[i].x = (int) old_pos1-1;
+					}
 				}
+				
 				else {
-					if (!occupied[cur1+1] && (cur1 < position[i].y))
-						position[i].x = (int) cur1+1;
+					if (old_pos1 < position[i].y) {
+						if (atomicCAS(&occupied[old_pos1+1], 0, 1) == 0) {
+							atomicExch(&occupied[old_pos1], 0);
+							
+							position[i].x = (int) old_pos1+1;
+						}
+					}
 				}
 			}
 		}
 		
 		else {
-			if (rng[i].y < diffuse_prob[cur2]) {
+			double rate = (rng[i].y < 0.5) ? backward_rate[i].y : forward_rate[i].y;
+
+			if (rng[i].z < diffuse_prob[old_pos2] * rate) {
 				stall[i].y = 0;
 
-				if (rng[i].z < 0.5) {
-					if (!occupied[cur2-1] && (cur2 > position[i].x))
-						position[i].y = (int) cur2-1;
+				if (rng[i].y < 0.5) {
+					if (old_pos2 > position[i].x) {
+						if (atomicCAS(&occupied[old_pos2-1], 0, 1) == 0) {
+							atomicExch(&occupied[old_pos2], 0);
+							
+							position[i].y = (int) old_pos2-1;
+						}
+					}
 				}
+				
 				else {
-					if (!occupied[cur2+1])
-						position[i].y = (int) cur2+1;
+					if (atomicCAS(&occupied[old_pos2+1], 0, 1) == 0) {
+						if (position[i].x != old_pos2)
+							atomicExch(&occupied[old_pos2], 0);
+							
+						position[i].y = (int) old_pos2+1;
+					}
 				}
 			}
 		}

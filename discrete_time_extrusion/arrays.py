@@ -35,7 +35,7 @@ def make_CTCF_arrays(xp,
                      right_positions,
                      CTCF_facestall,
                      CTCF_backstall,
-                     velocity_multiplier,
+                     lattice_timestep,
                      **kwargs):
     
     stall_left_array = make_site_array(xp, type_list, site_types, CTCF_facestall,
@@ -48,8 +48,8 @@ def make_CTCF_arrays(xp,
     stall_right_array += make_site_array(xp, type_list, site_types, CTCF_backstall,
                                          at_ids=left_positions, **kwargs)
     
-    stall_left_array = 1 - (1-stall_left_array) ** velocity_multiplier
-    stall_right_array = 1 - (1-stall_right_array) ** velocity_multiplier
+    stall_left_array = 1 - (1-stall_left_array) ** (1./lattice_timestep)
+    stall_right_array = 1 - (1-stall_right_array) ** (1./lattice_timestep)
 
     return [stall_left_array, stall_right_array]
 
@@ -60,14 +60,14 @@ def make_CTCF_dynamic_arrays(xp,
                              CTCF_on_rate,
                              CTCF_off_rate,
                              sites_per_monomer,
-                             velocity_multiplier,
+                             lattice_timestep,
                              **kwargs):
     
     on_rate_array = make_site_array(xp, type_list, site_types, CTCF_on_rate, **kwargs)
     off_rate_array = make_site_array(xp, type_list, site_types, CTCF_off_rate, **kwargs)
     
-    birth_array = on_rate_array / (velocity_multiplier * sites_per_monomer)
-    death_array = off_rate_array / (velocity_multiplier * sites_per_monomer)
+    birth_array = on_rate_array * lattice_timestep / sites_per_monomer
+    death_array = off_rate_array * lattice_timestep / sites_per_monomer
 
     return [birth_array, death_array]
     
@@ -79,9 +79,10 @@ def make_LEF_arrays(xp,
 					LEF_off_rate,
 					LEF_stalled_off_rate,
 					LEF_diffusion_rate,
+                    LEF_step_rate,
                     LEF_pause,
                     sites_per_monomer,
-                    velocity_multiplier,
+                    lattice_timestep,
                     **kwargs):
     
     on_rate_array = make_site_array(xp, type_list, site_types, LEF_on_rate, **kwargs)
@@ -90,15 +91,18 @@ def make_LEF_arrays(xp,
     stalled_off_rate_array = make_site_array(xp, type_list, site_types, LEF_stalled_off_rate, **kwargs)
     diffusion_rate_array = make_site_array(xp, type_list, site_types, LEF_diffusion_rate, **kwargs)
 
-    birth_array = on_rate_array / (velocity_multiplier * sites_per_monomer)
-    death_array = off_rate_array / (velocity_multiplier * sites_per_monomer)
+    birth_array = on_rate_array * lattice_timestep / sites_per_monomer
+    death_array = off_rate_array * lattice_timestep / sites_per_monomer
     
-    stalled_death_array = stalled_off_rate_array / (velocity_multiplier * sites_per_monomer)
-    diffusion_array = diffusion_rate_array / (velocity_multiplier * sites_per_monomer)
+    stalled_death_array = stalled_off_rate_array * lattice_timestep / sites_per_monomer
+    diffusion_array = diffusion_rate_array * lattice_timestep / sites_per_monomer
     
+    step_rate_array = make_site_array(xp, type_list, site_types, LEF_step_rate, **kwargs)
+    step_array = step_rate_array * lattice_timestep / sites_per_monomer
+
     pause_array = make_site_array(xp, type_list, site_types, LEF_pause, **kwargs)
 
-    return [birth_array, death_array, stalled_death_array, diffusion_array, pause_array]
+    return [birth_array, death_array, stalled_death_array, diffusion_array, step_array, pause_array]
 
 
 def make_LEF_transition_dict(xp,
@@ -107,7 +111,7 @@ def make_LEF_transition_dict(xp,
                              LEF_states,
                              LEF_transition_rates,
                              sites_per_monomer,
-                             velocity_multiplier,
+                             lattice_timestep,
                              **kwargs):
     
     transition_dict = {}
@@ -117,6 +121,6 @@ def make_LEF_transition_dict(xp,
 
     for ids, LEF_rate in LEF_transition_rates.items():
         rate_array = make_site_array(xp, type_list, site_types, LEF_rate, **kwargs)
-        transition_dict["LEF_transitions"][ids] = rate_array / (velocity_multiplier * sites_per_monomer)
+        transition_dict["LEF_transitions"][ids] = rate_array * lattice_timestep / sites_per_monomer
 
     return transition_dict

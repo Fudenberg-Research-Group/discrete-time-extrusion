@@ -23,6 +23,10 @@
         "strong_CTCF": 0.0012165450121654502,
         "weak_CTCF": 0.0012165450121654502
     },
+	"LEF_step_rate": {
+		"strong_CTCF": 1,
+		"weak_CTCF": 1
+	},
     "LEF_stalled_off_rate": {
         "strong_CTCF": 0.0012165450121654502,
         "weak_CTCF": 0.0012165450121654502
@@ -38,11 +42,10 @@
     "LEF_states": {},
     "LEF_transition_rates": {},
     "LEF_separation": 30,
-    "mode": "symmetric",
     "sites_per_monomer": 1,
     "monomers_per_replica": 1000,
     "number_of_replica": 10,
     "steps": 50000,
     "dummy_steps": 0,
-    "velocity_multiplier": 0.2
+    "lattice_timestep": 5
 }

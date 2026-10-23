@@ -1,0 +1,81 @@
+{
+    "CTCF_facestall": {
+        "DNA": 1,
+        "CTCF": 1
+    },
+    "CTCF_backstall": {
+        "DNA": 0,
+        "CTCF": 0
+    },
+    "CTCF_on_rate": {
+        "DNA": 0,
+        "CTCF": 0
+    },
+    "CTCF_off_rate": {
+        "DNA": 0,
+        "CTCF": 0
+    },
+    "LEF_on_rate": {
+        "DNA": 6400,
+        "CTCF": 0
+    },
+    "LEF_off_rate": {
+        "DNA": 0,
+        "CTCF": 0
+    },
+    "LEF_stalled_off_rate": {
+        "DNA": 0,
+        "CTCF": 0
+    },
+    "LEF_diffusion_rate": {
+        "DNA": 3200,
+        "CTCF": 128
+    },
+    "LEF_step_rate": {
+        "DNA": 15.83399766706536,
+        "CTCF": 0
+    },
+    "LEF_pause": {
+        "DNA": 0,
+        "CTCF": 0
+    },
+    "LEF_states": {
+        "RN": 1,
+        "RB": 2,
+        "RP": 3,
+        "RW": 4
+    },
+    "LEF_transition_rates": {
+        "21": {
+            "DNA": 1,
+            "CTCF": 0
+        },
+        "23": {
+            "DNA": 0,
+            "CTCF": 0
+        },
+        "12": {
+            "DNA": 0.02,
+            "CTCF": 6400
+        },
+        "32": {
+            "DNA": 0,
+            "CTCF": 0
+        },
+        "34": {
+            "DNA": 0,
+            "CTCF": 0
+        },
+        "43": {
+            "DNA": 0,
+            "CTCF": 0
+        }
+    },
+    "LEF_separation": 30,
+    "sites_per_monomer": 1,
+    "monomers_per_replica": 1000,
+    "number_of_replica": 1,
+    "steps": 1000,
+    "dummy_steps": 0,
+    "lattice_timestep": 0.00015625
+}

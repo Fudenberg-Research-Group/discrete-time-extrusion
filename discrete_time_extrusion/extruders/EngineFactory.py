@@ -42,18 +42,24 @@ except ImportError:
                       'asymmetric' : asymmetric_step}
 
 
-def DiffusionEngine(sim, unbound_state_id, threads_per_block=256, **kwargs):
+def DiffusionEngine(sim, tension_array, unbound_state_id,
+                    alpha=0.4, threads_per_block=256,
+                    **kwargs):
+
+	forward_rates = sim.xp.exp(-alpha*tension_array).astype(sim.xp.float64)
+	backward_rates = sim.xp.exp((1-alpha)*tension_array).astype(sim.xp.float64)
 
 	rngs = sim.xp.random.random((sim.number, 3)).astype(sim.xp.float64)
 	args = tuple([unbound_state_id,
 				  rngs,
 				  sim.number,
-				  0, sim.lattice_size,
 				  sim.states,
-				  sim.occupied,
-				  sim.stalled,
 				  sim.diffusion_prob,
-				  sim.positions])
+				  forward_rates,
+				  backward_rates,
+				  sim.positions,
+				  sim.stalled,
+				  sim.occupied])
 				  
 	if sim.xp.__name__ == 'cupy':
 		num_blocks = (sim.number+threads_per_block-1) // threads_per_block
@@ -69,40 +75,46 @@ def DiffusionEngine(sim, unbound_state_id, threads_per_block=256, **kwargs):
 		else:
 			warnings.warn("Running lattice diffusion on the CPU using pure Python backend")
 			python_engines['diffusion'](*args)
-
-	sim.update_occupancies()
 			                
 
-def SteppingEngine(sim, mode, active_state_id, threads_per_block=256, **kwargs):
-			      
+def SteppingEngine(sim, tension_array, active_state_id,
+                   alpha=0.4, mode='asymmetric', step_size=1, threads_per_block=256,
+                   **kwargs):
+                   
+	forward_rates = sim.xp.exp(-alpha*tension_array*step_size).astype(sim.xp.float64)
+
 	if mode == "symmetric":
-		rngs = sim.xp.random.random((sim.number, 4)).astype(sim.xp.float64)
+		rngs = sim.xp.random.random(sim.number * 2 * (step_size+2)).astype(sim.xp.float64)
 		args = tuple([active_state_id,
 			          rngs,
 			          sim.number,
-			          0, sim.lattice_size,
+			          step_size,
 			          sim.states,
-			          sim.occupied,
 			          sim.barrier_engine.stall_left,
 			          sim.barrier_engine.stall_right,
+			          sim.step_prob,
 			          sim.pause_prob,
+			          forward_rates,
 			          sim.positions,
-			          sim.stalled])
+			          sim.stalled,
+			          sim.occupied])
 
 	elif mode == "asymmetric":
-		rngs = sim.xp.random.random((sim.number, 2)).astype(sim.xp.float64)
+		rngs = sim.xp.random.random(sim.number * (step_size+2)).astype(sim.xp.float64)
 		args = tuple([active_state_id,
 			          rngs,
 			          sim.number,
-			          0, sim.lattice_size,
+			          step_size,
 			          sim.states,
-			          sim.occupied,
-			          sim.directions,
 			          sim.barrier_engine.stall_left,
 			          sim.barrier_engine.stall_right,
+			          sim.step_prob,
 			          sim.pause_prob,
+			          forward_rates,
 			          sim.positions,
-			          sim.stalled])
+			          sim.stalled,
+			          sim.directions,
+			          sim.occupied])
 
 	else:
 		raise RuntimeError("Unsupported mode '%s'" % mode)
@@ -121,5 +133,3 @@ def SteppingEngine(sim, mode, active_state_id, threads_per_block=256, **kwargs):
 		else:
 			warnings.warn("Running lattice extrusion on the CPU using pure Python backend")
 			python_engines[mode](*args)
-			
-	sim.update_occupancies()

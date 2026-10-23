@@ -37,7 +37,7 @@ class Translocator():
         assert len(site_types) == sites_per_replica, ("Site type array (%d) doesn't match replica lattice size (%d)"
                                                       % (len(site_types), sites_per_replica))
 
-        self.time_unit = 1. / (kwargs['sites_per_monomer'] * kwargs['velocity_multiplier'])
+        self.time_unit = kwargs['lattice_timestep'] / (kwargs['sites_per_monomer'])
 
         lef_arrays = arrays.make_LEF_arrays(xp, type_list, site_types, **kwargs)
         lef_transition_dict = arrays.make_LEF_transition_dict(xp, type_list, site_types, **kwargs)
@@ -58,7 +58,7 @@ class Translocator():
 
     def run(self, N, **kwargs):
             
-        self.extrusion_engine.steps(N, self.params['mode'], **kwargs)
+        self.extrusion_engine.steps(N, **kwargs)
         
         
     def run_trajectory(self, period=None, steps=None, prune_unbound_LEFs=True, **kwargs):
