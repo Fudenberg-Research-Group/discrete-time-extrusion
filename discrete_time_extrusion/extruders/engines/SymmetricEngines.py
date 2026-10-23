@@ -103,7 +103,7 @@ def _symmetric_step_gpu():
 				
 		if ( (rngs[head++] < step_rate1) && (stall[i].x == 0) ) {
 			for (unsigned int j = 0; j < step_size; ++j) {
-				double new_pos = (unsigned int) position[i].x;
+				unsigned int new_pos = (unsigned int) position[i].x;
 				double pause = pause_prob[new_pos];
 
 				if (rngs[head++] > pause) {
@@ -122,7 +122,7 @@ def _symmetric_step_gpu():
 			
 		if ( (rngs[head++] < step_rate2) && (stall[i].y == 0) ) {
 			for (unsigned int j = 0; j < step_size; ++j) {
-				double new_pos = (unsigned int) position[i].y;
+				unsigned int new_pos = (unsigned int) position[i].y;
 				double pause = pause_prob[new_pos];
 				
 				if (rngs[head++] > pause) {
