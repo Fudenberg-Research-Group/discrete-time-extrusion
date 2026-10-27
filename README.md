@@ -1,5 +1,5 @@
 ### Overview ###
-This repository is associated with the manuscript "Interplay of diffusive and active motion governs cohesin extrusion and CTCF barrier function", and houses codes to simulate tension-dependent cohesin dynamics based on the interplay of diffusion, extrusion and regulator binding kinetics.
+This repository is associated with the manuscript "Interplay of diffusive and active motion governs cohesin extrusion and CTCF barrier function", and houses codes to simulate tension-dependent cohesin motion based on the combination of Brownian diffusion, DNA capture and regulator binding kinetics.
 
 Cohesin kinetics are computed on a discrete 1D lattice, and can be run on either CPU or GPU via a native [CuPy](https://cupy.dev) implementation for large-scale simulations.
 
