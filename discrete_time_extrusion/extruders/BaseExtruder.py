@@ -42,9 +42,10 @@ class BaseExtruder(NullExtruder.NullExtruder):
 
         if len(load_ids) > 0:
             binding_sites = binding_sites[load_ids]
-        
+			available_mask = ~self.occupied[binding_sites+1] * ~self.xp.in1d(binding_sites+1, binding_sites)
+			
             rng_dir = self.xp.less(self.xp.random.random(len(ids)), 0.5)
-            rng_stagger = self.xp.less(self.xp.random.random(len(ids)), 0.5) * ~self.occupied[binding_sites+1]
+            rng_stagger = self.xp.less(self.xp.random.random(len(ids)), 0.5) * available_mask
 
             self.positions[ids] = binding_sites[:, None]
             self.positions[ids, 1] = self.xp.where(rng_stagger,
