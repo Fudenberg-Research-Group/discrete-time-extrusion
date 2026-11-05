@@ -3,34 +3,15 @@ from . import BaseExtruder
 
 class MultistateExtruder(BaseExtruder.BaseExtruder):
     
-    def __init__(self,
-                 number,
-                 barrier_engine,
-                 chromosome_bounds,
-                 birth_prob,
-                 death_prob,
-                 stalled_death_prob,
-                 diffusion_prob,
-                 step_prob,
-                 pause_prob,
-                 *args, **kwargs):
+    def __init__(self, *args, **kwargs):
     
-        super().__init__(number,
-                         barrier_engine,
-                         chromosome_bounds,
-                         birth_prob,
-                         death_prob,
-                         stalled_death_prob,
-                         diffusion_prob,
-                         step_prob,
-                         pause_prob,
-                         *args, **kwargs)
+        super().__init__(*args, **kwargs)
         
         self.state_dict = kwargs["LEF_states"]
         self.transition_dict = kwargs["LEF_transitions"]
         
 
-    def state_transitions(self, unbound_state_id, n_max=3, **kwargs):
+    def state_transitions(self, unbound_state_id, n_max):
         
         ids_array = self.xp.zeros((len(self.state_dict), self.number), dtype=self.xp.int32)
         products_array = self.xp.zeros((len(self.state_dict), self.number), dtype=self.xp.int32)
@@ -59,7 +40,6 @@ class MultistateExtruder(BaseExtruder.BaseExtruder):
                 state_array[ctr] = unbound_state_id
                 transition_array[ctr] = death_prob.max(axis=1)
 
-            # Vectorized discrete-time Gillespie algorithm
             rng = self.xp.random.random(self.number)
             
             cumul_prob = self.xp.cumsum(transition_array, axis=0)
@@ -80,9 +60,9 @@ class MultistateExtruder(BaseExtruder.BaseExtruder):
         return ids_array, products_array
             
         
-    def chemical_step(self, unbound_state_id=0, bound_state_id=1, **kwargs):
+    def chemical_step(self, unbound_state_id=0, bound_state_id=1, n_max=3, **kwargs):
 
-        ids_array, products_array = self.state_transitions(unbound_state_id, **kwargs)
+        ids_array, products_array = self.state_transitions(unbound_state_id, n_max)
         
         ids_birth = self.birth(unbound_state_id)
         self.states[ids_birth] = bound_state_id

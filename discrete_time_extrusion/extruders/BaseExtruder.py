@@ -10,8 +10,8 @@ class BaseExtruder(NullExtruder.NullExtruder):
                  birth_prob,
                  death_prob,
                  stalled_death_prob,
-                 diffusion_prob,
                  step_prob,
+                 diffusion_prob,
                  pause_prob,
                  *args, **kwargs):
     
@@ -22,9 +22,9 @@ class BaseExtruder(NullExtruder.NullExtruder):
         self.death_prob = death_prob
         self.stalled_death_prob = stalled_death_prob
         
-        self.diffusion_prob = diffusion_prob
         self.step_prob = step_prob
         self.pause_prob = pause_prob
+        self.diffusion_prob = diffusion_prob
 
         self.stepping_engine = EngineFactory.SteppingEngine
         self.diffusion_engine = EngineFactory.DiffusionEngine
@@ -88,16 +88,13 @@ class BaseExtruder(NullExtruder.NullExtruder):
 
         self.unload(ids_death)
         self.update_occupancies()
-
-
-    def step(self, tension=0, unbound_state_id=0, active_state_id=1, **kwargs):
-
-        super().step(**kwargs)
         
-        self.chemical_step(**kwargs)
-                
+
+    def physical_step(self, tension=0, unbound_state_id=0, active_state_id=1, **kwargs):
+    
         if isinstance(tension, float) | isinstance(tension, int):
             tension_array = self.xp.full((self.number, 2), tension, dtype=self.xp.float64)
+            
         elif isinstance(tension, self.xp.ndarray):
             tension_array = self.xp.asarray(tension, dtype=self.xp.float64)
 
@@ -108,3 +105,11 @@ class BaseExtruder(NullExtruder.NullExtruder):
 
         self.stepping_engine(self, tension_array, active_state_id, **kwargs)
         self.diffusion_engine(self, tension_array, unbound_state_id, **kwargs)
+
+
+    def step(self, **kwargs):
+
+        super().step(**kwargs)
+        
+        self.chemical_step(**kwargs)
+        self.physical_step(**kwargs)

@@ -77,30 +77,29 @@ def make_LEF_arrays(xp,
 					LEF_on_rate,
 					LEF_off_rate,
 					LEF_stalled_off_rate,
-					LEF_diffusion_rate,
                     LEF_step_rate,
+                    LEF_diffusion_rate,
                     LEF_pause,
                     timestep,
                     **kwargs):
     
     on_rate_array = make_site_array(xp, type_list, site_types, LEF_on_rate, **kwargs)
     off_rate_array = make_site_array(xp, type_list, site_types, LEF_off_rate, **kwargs)
-    
     stalled_off_rate_array = make_site_array(xp, type_list, site_types, LEF_stalled_off_rate, **kwargs)
-    diffusion_rate_array = make_site_array(xp, type_list, site_types, LEF_diffusion_rate, **kwargs)
 
     birth_array = on_rate_array * timestep
     death_array = off_rate_array * timestep
-    
     stalled_death_array = stalled_off_rate_array * timestep
-    diffusion_array = diffusion_rate_array * timestep
     
     step_rate_array = make_site_array(xp, type_list, site_types, LEF_step_rate, **kwargs)
     step_array = step_rate_array * timestep
 
+    diffusion_rate_array = make_site_array(xp, type_list, site_types, LEF_diffusion_rate, **kwargs)
+    diffusion_array = diffusion_rate_array * timestep
+
     pause_array = make_site_array(xp, type_list, site_types, LEF_pause, **kwargs)
 
-    return [birth_array, death_array, stalled_death_array, diffusion_array, step_array, pause_array]
+    return [birth_array, death_array, stalled_death_array, step_array, diffusion_array, pause_array]
 
 
 def make_LEF_transition_dict(xp,
