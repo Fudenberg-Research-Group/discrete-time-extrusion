@@ -24,7 +24,6 @@ class BaseExtruder(NullExtruder.NullExtruder):
         
         self.diffusion_prob = diffusion_prob
         self.step_prob = step_prob
-        
         self.pause_prob = pause_prob
 
         self.stepping_engine = EngineFactory.SteppingEngine
@@ -91,31 +90,21 @@ class BaseExtruder(NullExtruder.NullExtruder):
         self.update_occupancies()
 
 
-    def diffusion_step(self, tension_array=None, unbound_state_id=0, **kwargs):
-    
-        if tension_array is not None:
-            tension_array = self.xp.asarray(tension_array, dtype=self.xp.float64)
-        else:
-            tension_array = self.xp.zeros((self.number, 2), dtype=self.xp.float64)
-
-        self.diffusion_engine(self, tension_array, unbound_state_id, **kwargs)
-                
-
-    def extrusion_step(self, tension_array=None, active_state_id=1, **kwargs):
-    
-        if tension_array is not None:
-            tension_array = self.xp.asarray(tension_array, dtype=self.xp.float64)
-        else:
-            tension_array = self.xp.zeros((self.number, 2), dtype=self.xp.float64)
-
-        self.stepping_engine(self, tension_array, active_state_id, **kwargs)
-
-
-    def step(self, **kwargs):
+    def step(self, tension=0, unbound_state_id=0, active_state_id=1, **kwargs):
 
         super().step(**kwargs)
         
         self.chemical_step(**kwargs)
+                
+        if isinstance(tension, float) | isinstance(tension, int):
+            tension_array = self.xp.full((self.number, 2), tension, dtype=self.xp.float64)
+        elif isinstance(tension, self.xp.ndarray):
+            tension_array = self.xp.asarray(tension, dtype=self.xp.float64)
 
-        self.diffusion_step(**kwargs)
-        self.extrusion_step(**kwargs)
+            if tension_array.shape == (self.number,):
+                tension_array = self.xp.tile(tension_array[:, None], (1, 2))
+            elif tension_array.shape != (self.number, 2):
+                raise RuntimeError("Misshapen tension array - expected %d or %dx2" % (self.number, self.number))
+
+        self.stepping_engine(self, tension_array, active_state_id, **kwargs)
+        self.diffusion_engine(self, tension_array, unbound_state_id, **kwargs)

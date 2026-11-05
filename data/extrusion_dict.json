@@ -32,10 +32,9 @@
     "LEF_states": {},
     "LEF_transition_rates": {},
     "LEF_separation": 30,
-    "sites_per_monomer": 1,
-    "monomers_per_replica": 1000,
+    "sites_per_replica": 1000,
     "number_of_replica": 10,
     "steps": 50000,
     "dummy_steps": 0,
-    "lattice_timestep": 5
+    "timestep": 5
 }

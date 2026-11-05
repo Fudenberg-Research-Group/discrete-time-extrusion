@@ -31,13 +31,10 @@ class Translocator():
         else:
             raise RuntimeError("Unrecognized device %s - use either 'CPU' or 'GPU'" % device)
     
-        sites_per_replica = kwargs['monomers_per_replica'] * kwargs['sites_per_monomer']
-        number_of_LEFs = (kwargs['number_of_replica'] * kwargs['monomers_per_replica']) // kwargs['LEF_separation']
+        number_of_LEFs = (kwargs['number_of_replica'] * kwargs['sites_per_replica']) // kwargs['LEF_separation']
         
-        assert len(site_types) == sites_per_replica, ("Site type array (%d) doesn't match replica lattice size (%d)"
-                                                      % (len(site_types), sites_per_replica))
-
-        self.time_unit = kwargs['lattice_timestep'] / (kwargs['sites_per_monomer'])
+        assert len(site_types) == kwargs['sites_per_replica'], ("Site type array (%d) doesn't match replica lattice size (%d)"
+                                                                % (len(site_types), kwargs['sites_per_replica']))
 
         lef_arrays = arrays.make_LEF_arrays(xp, type_list, site_types, **kwargs)
         lef_transition_dict = arrays.make_LEF_transition_dict(xp, type_list, site_types, **kwargs)
@@ -50,8 +47,8 @@ class Translocator():
         self.extrusion_engine = extrusion_engine(number_of_LEFs, self.barrier_engine, chromosome_bounds,
 												 *lef_arrays, **lef_transition_dict)
                 
-        kwargs['steps'] = int(kwargs['steps'] / self.time_unit)
-        kwargs['dummy_steps'] = int(kwargs['dummy_steps'] / self.time_unit)
+        kwargs['steps'] = int(kwargs['steps'] / kwargs['timestep'])
+        kwargs['dummy_steps'] = int(kwargs['dummy_steps'] / kwargs['timestep'])
         
         self.params = kwargs
                 
