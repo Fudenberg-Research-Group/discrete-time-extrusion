@@ -1,11 +1,11 @@
-### Overview ###
+## Overview ##
 This repository is associated with the manuscript "Interplay of diffusive and active motion governs cohesin extrusion and CTCF barrier function", and houses codes to simulate tension-dependent cohesin motion based on the combination of Brownian diffusion, DNA capture and regulator binding kinetics.
 
 Cohesin kinetics are computed on a discrete 1D lattice, and can be run on either CPU or GPU via a native [CuPy](https://cupy.dev) implementation for large-scale simulations.
 
 They can also be seamlessly integrated within 3D polymer simulations using [polychrom-hoomd](https://github.com/open2c/polychrom-hoomd), as described in [previous work](https://doi.org/10.1016/j.xgen.2025.101098).
 
-<img width="6289" height="2937" alt="github-trim" src="https://github.com/user-attachments/assets/4b024e9a-31ab-42cf-a295-61cc6a47d087" />
+<img width="6336" height="2680" alt="github-trim" src="https://github.com/user-attachments/assets/c96fadb3-dffc-4b6e-b6d1-3e22eb5e3b79" />
 
 
 An exemplary notebook illustrating code usage for tension-dependent simulations in double-tethered DNA assays is provided [here](https://github.com/Fudenberg-Research-Group/discrete-time-extrusion/blob/jump_diffusion/examples/jdm_simulations.ipynb). 
