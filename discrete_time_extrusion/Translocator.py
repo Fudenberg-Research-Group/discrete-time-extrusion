@@ -63,7 +63,7 @@ class Translocator():
         self.clear_trajectory()
 
         steps = int(steps) if steps else self.params['steps']
-        period = int(period) if period else self.params['sites_per_monomer']
+        period = int(period) if period else 1
         
         self.run(self.params['dummy_steps']*period, **kwargs)
     
