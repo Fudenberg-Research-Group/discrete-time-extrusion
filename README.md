@@ -10,6 +10,6 @@ They can also be seamlessly integrated within 3D polymer simulations using [poly
 
 An exemplary notebook illustrating code usage for tension-dependent simulations in double-tethered DNA assays is provided [here](https://github.com/Fudenberg-Research-Group/discrete-time-extrusion/blob/jump_diffusion/examples/jdm_simulations.ipynb). 
 
-The movie below additionally displays predicted model kinetics at fixed, low (~0.1 pN) tensions below the cohesin stall force, showing how loop growth emerges from the competition of active, discrete DNA capture and passive, diffusion-driven slippage.
+The movie below additionally displays predicted model kinetics at fixed, low (~0.05 pN) tensions below the cohesin stall force, showing how loop growth emerges from the competition of active, discrete DNA capture and passive, diffusion-driven slippage.
 
 https://github.com/user-attachments/assets/37559df5-f343-4af5-b238-1f5a61155ffd
